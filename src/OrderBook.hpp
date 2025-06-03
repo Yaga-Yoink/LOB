@@ -1,4 +1,3 @@
-#include <array>
 #include <memory>
 #include <unordered_map>
 
@@ -11,6 +10,7 @@ using OrderVolume = uint64_t;
  */
 struct Order {
   OrderID id;
+  short direction;
   Price price;
   OrderVolume volume;
 };
@@ -31,7 +31,7 @@ struct OrderNode {
  */
 struct Level {
   Price price;
-  OrderNode* head;
+  std::unique_ptr<OrderNode> head;
   OrderNode* tail;
 };
 
@@ -58,6 +58,12 @@ class OrderBook {
   void cancel_order(OrderID order_id);
 
  private:
-  std::unordered_map<OrderID, OrderMetadata> order_map;
-  std::unordered_map<Price, Level> level_map;
+  // best bid price on order book
+  Price bid_price;
+  // best ask price on order book
+  Price ask_price;
+  std::unordered_map<OrderID, std::unique_ptr<OrderMetadata>> bid_order_map;
+  std::unordered_map<OrderID, std::unique_ptr<OrderMetadata>> ask_order_map;
+  std::unordered_map<Price, std::unique_ptr<Level>> bid_level_map;
+  std::unordered_map<Price, std::unique_ptr<Level>> ask_level_map;
 };
