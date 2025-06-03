@@ -51,7 +51,7 @@ class OrderBook {
   /**
    * Add an 'order' to the order book.
    */
-  void place_order(Order order);
+  void place_order(Order& order);
   /**
    * Cancel the order with ID 'order_id' from the order book.
    */
