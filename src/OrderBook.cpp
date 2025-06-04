@@ -42,3 +42,6 @@ void OrderBook::place_order(Order& order) {
   }
 };
 void OrderBook::cancel_order(OrderID order_id) {}
+
+Price OrderBook::get_bid_price() { return bid_price; }
+Price OrderBook::get_ask_price() { return ask_price; }

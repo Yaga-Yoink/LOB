@@ -57,6 +57,16 @@ class OrderBook {
    */
   void cancel_order(OrderID order_id);
 
+  /**
+   * Get the best bid price
+   */
+  Price get_bid_price();
+
+  /**
+   * Get the best ask price
+   */
+  Price get_ask_price();
+
  private:
   // best bid price on order book
   Price bid_price;
