@@ -9,16 +9,18 @@ void OrderBook::place_order(Order& order) {
       (order.direction == -1) ? ask_level_map : bid_level_map;
   std::unique_ptr<OrderNode> node =
       std::make_unique<OrderNode>(OrderNode{order, nullptr, nullptr});
-
   if (!level_map.contains(order.price)) {
-    std::unique_ptr<Level> level = std::make_unique<Level>(
-        Level{order.price, std::move(node), node.get()});
+    std::unique_ptr<Level> level =
+        std::make_unique<Level>(Level{order.price, std::move(node), nullptr});
+    level->tail = level->head.get();
     level_map.insert({order.price, std::move(level)});
+
   }
 
   // there will always be a head in this else branch
   else {
     Level* price_level = level_map[order.price].get();
+    // std::cout << (price_level->tail == nullptr) << std::endl;
 
     price_level->tail->right = node.get();
     node->left = price_level->tail;
@@ -31,7 +33,7 @@ void OrderBook::place_order(Order& order) {
   order_map.insert({order.id, std::make_unique<OrderMetadata>(
                                   OrderMetadata{node.get(), price_level})});
 
-  // fix invariants
+  // // fix invariants
   switch (order.direction) {
     case -1:
       ask_price = order.price < ask_price ? order.price : ask_price;
