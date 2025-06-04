@@ -1,5 +1,7 @@
 #include "OrderBook.hpp"
 
+#include <iostream>
+
 // place order always goes through, it is the job of the matching engine to
 // figure out whether it is an aggressive or passive order
 void OrderBook::place_order(Order& order) {
@@ -7,17 +9,22 @@ void OrderBook::place_order(Order& order) {
       (order.direction == -1) ? ask_level_map : bid_level_map;
   std::unique_ptr<OrderNode> node =
       std::make_unique<OrderNode>(OrderNode{order, nullptr, nullptr});
+
   if (!level_map.contains(order.price)) {
-    std::unique_ptr<Level> level =
-        std::make_unique<Level>(Level{order.price, std::move(node), nullptr});
+    std::unique_ptr<Level> level = std::make_unique<Level>(
+        Level{order.price, std::move(node), node.get()});
     level_map.insert({order.price, std::move(level)});
   }
-  // add order to the price_level
-  Level* price_level = level_map[order.price].get();
-  node->left = price_level->tail;
-  price_level->tail->right = node.get();
-  price_level->tail = node.get();
 
+  // there will always be a head in this else branch
+  else {
+    Level* price_level = level_map[order.price].get();
+
+    price_level->tail->right = node.get();
+    node->left = price_level->tail;
+    price_level->tail = node.get();
+  }
+  Level* price_level = level_map[order.price].get();
   std::unordered_map<OrderID, std::unique_ptr<OrderMetadata>>& order_map =
       (order.direction == -1) ? ask_order_map : bid_order_map;
   // add order to the order_map
