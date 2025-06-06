@@ -9,5 +9,6 @@ int main() {
   Order order2{1, 1, 1, 1};
   book.place_order(order2);
   std::cout << "here" << std::endl;
+  std::cout << book.get_bid_price() << std::endl;
   return 0;
 }
