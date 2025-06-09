@@ -1,3 +1,5 @@
+#pragma once
+
 #include <array>
 #include <atomic>
 
@@ -30,6 +32,7 @@ class Order_QUEUE {
   bool poll(Order* order_ptr);
 };
 
+// TODO: handle overflow, prevent tail from overwriting the value at head
 template <unsigned int N>
 void Order_QUEUE<N>::write(const Order& order) {
   unsigned tl = tail.load(std::memory_order_relaxed);
