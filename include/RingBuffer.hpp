@@ -50,6 +50,6 @@ bool Order_QUEUE<N>::poll(Order* order) {
     head++;
     return true;
   } else {
-    return false
+    return false;
   }
 };
