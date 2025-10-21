@@ -17,3 +17,20 @@ set(SOURCES
 )
 
 add_executable(main ${SOURCES})
+
+add_subdirectory(googletest)
+
+enable_testing()
+
+add_executable(
+    RingBuffer_test
+    tests/RingBuffer_test.cpp
+)
+
+target_link_libraries(
+    RingBuffer_test
+    GTest::gtest_main
+)
+
+include(GoogleTest)
+gtest_discover_tests(RingBuffer_test)

@@ -10,10 +10,10 @@ int main() {
   book.place_order(order);
   Order order2{1, Buy, 1, 1};
   book.place_order(order2);
-  // std::cout << "here" << std::endl;
-  // std::cout << book.get_bid_price() << std::endl;
+  std::cout << "here" << std::endl;
+  std::cout << book.get_bid_price() << std::endl;
 
-  // std::cout << sizeof(Side) << std::endl;
+  std::cout << sizeof(Side) << std::endl;
 
   Order_QUEUE<100> queue{};
   Order order3{1, Buy, 1, 1};

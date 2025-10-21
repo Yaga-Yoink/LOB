@@ -3,11 +3,20 @@
 #include <memory>
 #include <unordered_map>
 
+struct Order;
+struct OrderNode;
+struct Level;
+struct OrderMetadata;
+
+
 using OrderID = uint64_t;
 using Price = double;
 using OrderVolume = uint64_t;
 
-enum Side { Buy = 1, Sell = -1 };
+using LevelMap = std::unordered_map<Price, Level>;
+using OrderMap = std::unordered_map<OrderID, OrderMetadata>;
+
+enum Side { Buy, Sell};
 
 /**
  * Represents a single limit order inside of a price level.
@@ -25,8 +34,8 @@ struct Order {
 struct OrderNode {
   Order order;
   // left refers to older order with higher priority
-  OrderNode* left;
-  OrderNode* right;
+  std::weak_ptr<OrderNode> left;
+  std::shared_ptr<OrderNode> right;
 };
 
 /**
@@ -35,16 +44,16 @@ struct OrderNode {
  */
 struct Level {
   Price price;
-  OrderNode* head;
-  OrderNode* tail;
+  std::shared_ptr<OrderNode> head;
+  std::weak_ptr<OrderNode> tail;
 };
 
 /**
  * Intermediary datastructure for referencing the order and its price level.
  */
 struct OrderMetadata {
-  std::unique_ptr<OrderNode> order_node;
-  Level* level;
+  std::weak_ptr<OrderNode> order_node;
+  Level level;
 };
 
 /**
@@ -76,8 +85,8 @@ class OrderBook {
   Price bid_price = std::numeric_limits<Price>::min();
   // best ask price on order book
   Price ask_price = std::numeric_limits<Price>::max();
-  std::unordered_map<OrderID, std::unique_ptr<OrderMetadata>> bid_order_map;
-  std::unordered_map<OrderID, std::unique_ptr<OrderMetadata>> ask_order_map;
-  std::unordered_map<Price, std::unique_ptr<Level>> bid_level_map;
-  std::unordered_map<Price, std::unique_ptr<Level>> ask_level_map;
+  OrderMap bid_order_map;
+  OrderMap ask_order_map;
+  LevelMap bid_level_map;
+  LevelMap ask_level_map;
 };
