@@ -4,6 +4,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <istream>
 
 #include "OrderBook.hpp"
 
@@ -19,11 +20,21 @@ enum EventType {
   trade_halt
 };
 
-using Row = std::tuple<Time, EventType, OrderID, OrderVolume, Price, Side>;
+struct Row {
+    Time time;
+    EventType type;
+    OrderID id;
+    OrderVolume volume;
+    Price price;
+    Side side;
+};
+
 
 class CSVParser {
  public:
-  CSVParser(std::string fp) : stream{fp} {};
+  CSVParser(std::string fp) : stream{fp}{
+    stream.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  };
 
   /**
    * Returns the next row of the CSV containing a 'message' that updated

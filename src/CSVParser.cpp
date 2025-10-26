@@ -1,7 +1,8 @@
 #include "CSVParser.hpp"
 
 Row CSVParser::next() {
-  if (stream.eof()) {
+  std::string line;
+  if (!std::getline(stream, line)) {
     throw std::runtime_error("No more lines to read.");
   }
 
@@ -13,10 +14,12 @@ Row CSVParser::next() {
   Side side;
 
   std::vector<std::string> res;
-  std::string line;
-  while (std::getline(stream, line, ',')) {
-    res.push_back(line);
-  };
+  std::stringstream ss{line};
+
+  std::string entry;
+  while (std::getline(ss, entry, ',')) {
+    res.push_back(entry);
+  }
   time = std::stod(res[0]);
   type = static_cast<EventType>(std::stoi(res[1]) - 1);
   id = static_cast<long long>(std::stoll(res[2]));

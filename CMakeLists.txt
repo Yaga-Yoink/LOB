@@ -14,6 +14,7 @@ set(SOURCES
     src/main.cpp
     src/OrderBook.cpp
     src/OrderBookBuilder.cpp
+    src/CSVParser.cpp
 )
 
 add_executable(main ${SOURCES})
