@@ -13,8 +13,16 @@ int main() {
     try {
       Row row = parser.next();
       Order order{row.id, row.side, row.price, row.volume};
-      book.place_order(order);
-      printf("Placed Order: %lld\n", row.id);
+      switch (row.type) {
+        case EventType::submission:
+          book.place_order(order);
+          printf("Placed Order: %lld\n", row.id);
+          break;
+        case EventType::deletion:
+          book.cancel_order(row.id);
+          printf("Deleted Order: %lld\n", row.id);
+          break;
+      }
     }
     catch (const std::exception& e) {
       std::cout << e.what() << std::endl;
