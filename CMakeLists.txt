@@ -26,11 +26,21 @@ add_executable(
     RingBuffer_test
     tests/RingBuffer_test.cpp
 )
+add_executable(
+    CSVParser_test
+    tests/CSVParser_test.cpp
+)
 
 target_link_libraries(
     RingBuffer_test
     GTest::gtest_main
 )
 
+target_link_libraries(
+    CSVParser_test
+    GTest::gtest_main
+)
+
 include(GoogleTest)
 gtest_discover_tests(RingBuffer_test)
+gtest_discover_tests(CSVParser_test)

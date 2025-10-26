@@ -8,7 +8,6 @@ struct OrderNode;
 struct Level;
 struct OrderMetadata;
 
-
 using OrderID = uint64_t;
 using Price = double;
 using OrderVolume = uint64_t;
@@ -16,7 +15,7 @@ using OrderVolume = uint64_t;
 using LevelMap = std::unordered_map<Price, Level>;
 using OrderMap = std::unordered_map<OrderID, OrderMetadata>;
 
-enum Side { Buy, Sell};
+enum Side { Buy = 1, Sell = -1 };
 
 /**
  * Represents a single limit order inside of a price level.
@@ -52,7 +51,7 @@ struct Level {
  * Intermediary datastructure for referencing the order and its price level.
  */
 struct OrderMetadata {
-  std::weak_ptr<OrderNode> order_node;
+  std::shared_ptr<OrderNode> order_node;
   Level level;
 };
 
