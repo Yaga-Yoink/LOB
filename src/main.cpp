@@ -16,11 +16,11 @@ int main() {
       switch (row.type) {
         case EventType::submission:
           book.place_order(order);
-          printf("Placed Order: %lld\n", row.id);
+          printf("Placed Order: %lu\n", row.id);
           break;
         case EventType::deletion:
           book.cancel_order(row.id);
-          printf("Deleted Order: %lld\n", row.id);
+          printf("Deleted Order: %lu\n", row.id);
           break;
       }
     }

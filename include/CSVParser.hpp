@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <string>
 #include <istream>
+#include <vector>
 
 #include "OrderBook.hpp"
 
