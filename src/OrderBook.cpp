@@ -54,6 +54,8 @@ void OrderBook::cancel_order(OrderID order_id) {
     order_map = ask_order_map;
     direction = Sell;
   } else {
+    printf("No such order: %lu\n", order_id);
+    return;
     // error
   }
   OrderMetadata order_metadata = order_map[order_id];
@@ -61,6 +63,8 @@ void OrderBook::cancel_order(OrderID order_id) {
   order_map.erase(order_id);
 
   // only order in level
+  // std::cout << "order_node is nullptr: " << !order_node << std::endl;
+
   if (order_node->left.expired() && order_node->right == nullptr) {
     order_metadata.level.head = nullptr;
     order_metadata.level.tail = std::weak_ptr<OrderNode>();
