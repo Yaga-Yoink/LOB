@@ -17,31 +17,35 @@ set(SOURCES
     src/CSVParser.cpp
 )
 
+# Define the main executable
 add_executable(main ${SOURCES})
 
+# Add GoogleTest as a subdirectory
 add_subdirectory(googletest)
 
+# Enable testing with CTest
 enable_testing()
 
-add_executable(
-    RingBuffer_test
+# List of all test source files (add new tests here)
+set(TEST_SOURCES
     tests/RingBuffer_test.cpp
-)
-add_executable(
-    CSVParser_test
     tests/CSVParser_test.cpp
+    tests/OrderBook_test.cpp
+    # Add more tests here as you create them
 )
 
-target_link_libraries(
-    RingBuffer_test
-    GTest::gtest_main
-)
+# Loop through the test sources and automatically create test executables
+foreach(TEST_FILE ${TEST_SOURCES})
+    # Extract the base name of the test file (e.g., "RingBuffer_test" from "RingBuffer_test.cpp")
+    get_filename_component(TEST_NAME ${TEST_FILE} NAME_WE)
 
-target_link_libraries(
-    CSVParser_test
-    GTest::gtest_main
-)
+    # Create the test executable from the source file, including the necessary source files
+    add_executable(${TEST_NAME} ${TEST_FILE} src/OrderBook.cpp src/OrderBookBuilder.cpp src/CSVParser.cpp)
 
-include(GoogleTest)
-gtest_discover_tests(RingBuffer_test)
-gtest_discover_tests(CSVParser_test)
+    # Link the test executable with GoogleTest's main function and pthread
+    target_link_libraries(${TEST_NAME} GTest::gtest_main pthread)
+
+    # Automatically register the test with CTest
+    include(GoogleTest)  # Make sure this is included after adding googletest
+    gtest_discover_tests(${TEST_NAME})
+endforeach()

@@ -13,7 +13,7 @@ using OrderID = uint64_t;
 using Price = double;
 using OrderVolume = uint64_t;
 
-using LevelMap = std::unordered_map<Price, Level>;
+using LevelMap = std::unordered_map<Price, std::shared_ptr<Level>>;
 using OrderMap = std::unordered_map<OrderID, OrderMetadata>;
 
 enum Side { Buy = 1, Sell = -1 };
@@ -53,7 +53,7 @@ struct Level {
  */
 struct OrderMetadata {
   std::shared_ptr<OrderNode> order_node;
-  Level level;
+  std::shared_ptr<Level> level;
 };
 
 /**

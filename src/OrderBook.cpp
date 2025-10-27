@@ -12,25 +12,25 @@ void OrderBook::place_order(const Order& order) {
       (order.direction == Side::Sell) ? ask_level_map : bid_level_map;
   std::shared_ptr<OrderNode> node = std::make_shared<OrderNode>(OrderNode{order, std::weak_ptr<OrderNode>{}, nullptr});
 
-  Level price_level;
+  std::shared_ptr<Level> price_level;
   if (!level_map.contains(order.price)) {
-    level_map.emplace(order.price, Level{order.price, node, node});
-    price_level = level_map[order.price];
+    price_level = std::make_shared<Level>(order.price, node, node);
+    level_map.emplace(order.price, price_level);
   }
   // there will always be a head in this else branch
   else {
     price_level = level_map.at(order.price);
-    if (auto tail_ptr = price_level.tail.lock()) {
+    if (auto tail_ptr = price_level->tail.lock()) {
       tail_ptr->right = node;
       node->left = tail_ptr;
-      price_level.tail = node; 
+      price_level->tail = node; 
     }
     
   }
 
   OrderMap& order_map = (order.direction == Sell) ? ask_order_map : bid_order_map;
   // add order to the order_map
-  order_map.emplace(order.id, OrderMetadata{node, price_level});
+  order_map.emplace(order.id, OrderMetadata{node, std::move(price_level)});
 
   // fix invariants
   switch (order.direction) {
@@ -66,8 +66,8 @@ void OrderBook::cancel_order(OrderID order_id) {
   // std::cout << "order_node is nullptr: " << !order_node << std::endl;
 
   if (order_node->left.expired() && order_node->right == nullptr) {
-    order_metadata.level.head = nullptr;
-    order_metadata.level.tail = std::weak_ptr<OrderNode>();
+    order_metadata.level->head = nullptr;
+    order_metadata.level->tail = std::weak_ptr<OrderNode>();
     // TODO: handle best bid ask price
 
     if (direction == Buy && order_node->order.price == bid_price) {
@@ -79,7 +79,7 @@ void OrderBook::cancel_order(OrderID order_id) {
       for (auto it = order_map.begin(); it != order_map.end(); ++it) {
         // iterators for map have an overload -> operator which returns a
         // std::pair of the key and value
-        Price curr_price = it->second.level.price;
+        Price curr_price = it->second.level->price;
 
         max_price = max_price < curr_price ? curr_price : max_price;
       }
@@ -89,7 +89,7 @@ void OrderBook::cancel_order(OrderID order_id) {
       for (auto it = order_map.begin(); it != order_map.end(); ++it) {
         // iterators for map have an overload -> operator which returns a
         // std::pair of the key and value
-        Price curr_price = it->second.level.price;
+        Price curr_price = it->second.level->price;
 
         min_price = min_price < curr_price ? min_price : curr_price;
       }
@@ -98,11 +98,11 @@ void OrderBook::cancel_order(OrderID order_id) {
   }
   // order was the tail of the level
   else if (order_node->right == nullptr) {
-    order_metadata.level.tail = order_node->left;
+    order_metadata.level->tail = order_node->left;
   }
   // order was the head of the level
   else if (order_node->left.expired()) {
-    order_metadata.level.head = order_node->right;
+    order_metadata.level->head = order_node->right;
   }
   // order was in the middle of the level, no need to adjust level pointers
   else {
