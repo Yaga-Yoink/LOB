@@ -35,10 +35,11 @@ void OrderBook::place_order(const Order& order) {
   // fix invariants
   switch (order.direction) {
     case Sell:
-      ask_price = order.price < ask_price ? order.price : ask_price;
+      ask_price = std::min({ask_price, order.price});
       break;
     case Buy:
-      bid_price = order.price > bid_price ? order.price : bid_price;
+      std::cout << "Bid Price: " << bid_price << ", Order Price: " << order.price << std::endl;
+      bid_price = std::max({bid_price, order.price});
       break;
   }
 };
@@ -64,8 +65,10 @@ void OrderBook::cancel_order(OrderID order_id) {
 
   // only order in level
   // std::cout << "order_node is nullptr: " << !order_node << std::endl;
-
-  if (order_node->left.expired() && order_node->right == nullptr) {
+  
+  if (std::shared_ptr<OrderNode> tail_ptr = order_node->left.lock()) {
+    if (tail_ptr == order_node->right) {
+    std::cout << "Detected Deleting Level" << std::endl;
     order_metadata.level->head = nullptr;
     order_metadata.level->tail = std::weak_ptr<OrderNode>();
     // TODO: handle best bid ask price
@@ -75,13 +78,13 @@ void OrderBook::cancel_order(OrderID order_id) {
       // unofruntately since levels are in an unordered map instead of
       // something like a heap or binary tree, this will be O(n) to find the
       // next best price
+      std::cout << "Canceling Curr Price Order Here: " << std::endl;
       Price max_price{std::numeric_limits<Price>::min()};
       for (auto it = order_map.begin(); it != order_map.end(); ++it) {
+        std::cout << "Key : " << it->first << ", Value Price: " << it->second.level->price << std::endl;
         // iterators for map have an overload -> operator which returns a
         // std::pair of the key and value
-        Price curr_price = it->second.level->price;
-
-        max_price = max_price < curr_price ? curr_price : max_price;
+        max_price = std::max({max_price, it->second.level->price});
       }
       bid_price = max_price;
     } else if (direction == Sell && order_node->order.price == ask_price) {
@@ -89,13 +92,12 @@ void OrderBook::cancel_order(OrderID order_id) {
       for (auto it = order_map.begin(); it != order_map.end(); ++it) {
         // iterators for map have an overload -> operator which returns a
         // std::pair of the key and value
-        Price curr_price = it->second.level->price;
-
-        min_price = min_price < curr_price ? min_price : curr_price;
+        min_price = std::min({min_price, it->second.level->price});
       }
       ask_price = min_price;
     }
   }
+}
   // order was the tail of the level
   else if (order_node->right == nullptr) {
     order_metadata.level->tail = order_node->left;

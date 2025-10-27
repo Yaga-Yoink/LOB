@@ -3,6 +3,7 @@
 #include <memory>
 #include <unordered_map>
 #include <limits>
+#include <algorithm>
 
 struct Order;
 struct OrderNode;
