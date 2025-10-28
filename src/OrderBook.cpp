@@ -44,14 +44,17 @@ void OrderBook::place_order(const Order& order) {
 };
 
 void OrderBook::cancel_order(OrderID order_id) {
-  auto side = [order_id, &bid_order_map = bid_order_map, &ask_order_map = ask_order_map](){
-    if (bid_order_map.contains(order_id)) {
-      return Side::Buy;
-    } else if (ask_order_map.contains(order_id)) {
-      return Side::Sell;
-    } 
-  };
-  Side direction = side();
+  Side direction;
+  if (bid_order_map.contains(order_id)) {
+    direction = Side::Buy;
+  }
+  else if (ask_order_map.contains(order_id)) {
+    direction = Side::Sell;
+  }
+  else {
+    return;
+  }
+
   OrderMap& order_map = (direction == Side::Buy) ? bid_order_map : ask_order_map;
   LevelMap& level_map = (direction == Side::Buy) ? bid_level_map : ask_level_map; 
   // find order in either bid_price or ask_price maps
