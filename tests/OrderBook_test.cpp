@@ -30,8 +30,8 @@ TEST(MULT_BIDS, BasicAssertions) {
     ob.place_order(order3);
 
     EXPECT_EQ(ob.get_bid_price(), 16);
-    ob.cancel_order(3);
-    EXPECT_EQ(ob.get_bid_price(), 10);
     ob.cancel_order(2);
+    EXPECT_EQ(ob.get_bid_price(), 10);
+    ob.cancel_order(1);
     EXPECT_EQ(ob.get_bid_price(), 10);
 }

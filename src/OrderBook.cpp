@@ -25,19 +25,18 @@ void OrderBook::place_order(const Order& order) {
       node->left = tail_ptr;
       price_level->tail = node; 
     }
-    
   }
 
-  OrderMap& order_map = (order.direction == Sell) ? ask_order_map : bid_order_map;
+  OrderMap& order_map = (order.direction == Side::Sell) ? ask_order_map : bid_order_map;
   // add order to the order_map
   order_map.emplace(order.id, OrderMetadata{node, std::move(price_level)});
 
   // fix invariants
   switch (order.direction) {
-    case Sell:
+    case Side::Sell:
       ask_price = std::min({ask_price, order.price});
       break;
-    case Buy:
+    case Side::Buy:
       std::cout << "Bid Price: " << bid_price << ", Order Price: " << order.price << std::endl;
       bid_price = std::max({bid_price, order.price});
       break;
@@ -45,66 +44,59 @@ void OrderBook::place_order(const Order& order) {
 };
 
 void OrderBook::cancel_order(OrderID order_id) {
-  OrderMap order_map;
-  Side direction;
+  auto side = [order_id, &bid_order_map = bid_order_map, &ask_order_map = ask_order_map](){
+    if (bid_order_map.contains(order_id)) {
+      return Side::Buy;
+    } else if (ask_order_map.contains(order_id)) {
+      return Side::Sell;
+    } 
+  };
+  Side direction = side();
+  OrderMap& order_map = (direction == Side::Buy) ? bid_order_map : ask_order_map;
+  LevelMap& level_map = (direction == Side::Buy) ? bid_level_map : ask_level_map; 
   // find order in either bid_price or ask_price maps
-  if (bid_order_map.contains(order_id)) {
-    order_map = bid_order_map;
-    direction = Buy;
-  } else if (ask_order_map.contains(order_id)) {
-    order_map = ask_order_map;
-    direction = Sell;
-  } else {
-    printf("No such order: %lu\n", order_id);
-    return;
-    // error
-  }
-  OrderMetadata order_metadata = order_map[order_id];
+  OrderMetadata& order_metadata = order_map[order_id];
   std::shared_ptr<OrderNode>& order_node = order_metadata.order_node;
-  order_map.erase(order_id);
+  // order_map.erase(order_id);
 
   // only order in level
   // std::cout << "order_node is nullptr: " << !order_node << std::endl;
   
-  if (std::shared_ptr<OrderNode> tail_ptr = order_node->left.lock()) {
-    if (tail_ptr == order_node->right) {
+  if (order_node->left.expired() && order_node->right == nullptr) {
     std::cout << "Detected Deleting Level" << std::endl;
-    order_metadata.level->head = nullptr;
-    order_metadata.level->tail = std::weak_ptr<OrderNode>();
     // TODO: handle best bid ask price
-
-    if (direction == Buy && order_node->order.price == bid_price) {
-      // serach container for next best price
-      // unofruntately since levels are in an unordered map instead of
-      // something like a heap or binary tree, this will be O(n) to find the
-      // next best price
+    order_metadata.level->head = nullptr;
+    order_metadata.level->tail.reset();
+    order_node->left.reset();
+    order_node->right = nullptr;
+    Price order_price = order_node->order.price;  // Save price before erasing
+    order_map.erase(order_id);
+    if (direction == Side::Buy && order_price == bid_price) {
       std::cout << "Canceling Curr Price Order Here: " << std::endl;
       Price max_price{std::numeric_limits<Price>::min()};
       for (auto it = order_map.begin(); it != order_map.end(); ++it) {
         std::cout << "Key : " << it->first << ", Value Price: " << it->second.level->price << std::endl;
-        // iterators for map have an overload -> operator which returns a
-        // std::pair of the key and value
         max_price = std::max({max_price, it->second.level->price});
       }
       bid_price = max_price;
-    } else if (direction == Sell && order_node->order.price == ask_price) {
+    } else if (direction == Side::Sell && order_price == ask_price) {
       Price min_price{std::numeric_limits<Price>::max()};
       for (auto it = order_map.begin(); it != order_map.end(); ++it) {
-        // iterators for map have an overload -> operator which returns a
-        // std::pair of the key and value
         min_price = std::min({min_price, it->second.level->price});
       }
       ask_price = min_price;
     }
+    level_map.erase(order_price);
   }
-}
   // order was the tail of the level
   else if (order_node->right == nullptr) {
     order_metadata.level->tail = order_node->left;
+    order_map.erase(order_id);
   }
   // order was the head of the level
   else if (order_node->left.expired()) {
     order_metadata.level->head = order_node->right;
+    order_map.erase(order_id);
   }
   // order was in the middle of the level, no need to adjust level pointers
   else {
@@ -112,6 +104,7 @@ void OrderBook::cancel_order(OrderID order_id) {
       tmp->right = order_node->right;
     }
     order_node->right->left = order_node->left;
+    order_map.erase(order_id);
   }
 }
 
