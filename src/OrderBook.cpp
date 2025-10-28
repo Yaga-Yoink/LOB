@@ -37,7 +37,7 @@ void OrderBook::place_order(const Order& order) {
       ask_price = std::min({ask_price, order.price});
       break;
     case Side::Buy:
-      std::cout << "Bid Price: " << bid_price << ", Order Price: " << order.price << std::endl;
+      // std::cout << "Bid Price: " << bid_price << ", Order Price: " << order.price << std::endl;
       bid_price = std::max({bid_price, order.price});
       break;
   }
@@ -66,7 +66,7 @@ void OrderBook::cancel_order(OrderID order_id) {
   // std::cout << "order_node is nullptr: " << !order_node << std::endl;
   
   if (order_node->left.expired() && order_node->right == nullptr) {
-    std::cout << "Detected Deleting Level" << std::endl;
+    // std::cout << "Detected Deleting Level" << std::endl;
     // TODO: handle best bid ask price
     order_metadata.level->head = nullptr;
     order_metadata.level->tail.reset();
@@ -75,10 +75,10 @@ void OrderBook::cancel_order(OrderID order_id) {
     Price order_price = order_node->order.price;  // Save price before erasing
     order_map.erase(order_id);
     if (direction == Side::Buy && order_price == bid_price) {
-      std::cout << "Canceling Curr Price Order Here: " << std::endl;
+      // std::cout << "Canceling Curr Price Order Here: " << std::endl;
       Price max_price{std::numeric_limits<Price>::min()};
       for (auto it = order_map.begin(); it != order_map.end(); ++it) {
-        std::cout << "Key : " << it->first << ", Value Price: " << it->second.level->price << std::endl;
+        // std::cout << "Key : " << it->first << ", Value Price: " << it->second.level->price << std::endl;
         max_price = std::max({max_price, it->second.level->price});
       }
       bid_price = max_price;

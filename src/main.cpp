@@ -16,16 +16,16 @@ int main() {
       switch (row.type) {
         case EventType::submission:
           book.place_order(order);
-          printf("Placed Order: %lu\n", row.id);
+          // printf("Placed Order: %lu\n", row.id);
           break;
         case EventType::deletion:
           book.cancel_order(row.id);
-          printf("Deleted Order: %lu\n", row.id);
+          // printf("Deleted Order: %lu\n", row.id);
           break;
       }
     }
     catch (const std::exception& e) {
-      std::cout << e.what() << std::endl;
+      // std::cout << e.what() << std::endl;
       break;
     }
   }
@@ -33,10 +33,10 @@ int main() {
   book.place_order(order);
   Order order2{1, Buy, 1, 1};
   book.place_order(order2);
-  std::cout << "here" << std::endl;
-  std::cout << book.get_bid_price() << std::endl;
+  // std::cout << "here" << std::endl;
+  // std::cout << book.get_bid_price() << std::endl;
 
-  std::cout << sizeof(Side) << std::endl;
+  // std::cout << sizeof(Side) << std::endl;
 
   Order_QUEUE<100> queue{};
   Order order3{1, Buy, 1, 1};
