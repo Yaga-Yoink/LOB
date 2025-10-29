@@ -14,6 +14,7 @@ Row CSVParser::next() {
   Side side;
 
   std::vector<std::string> res;
+  res.reserve(6);
   std::stringstream ss{line};
 
   std::string entry;
